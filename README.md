@@ -27,7 +27,7 @@ Kurulum değişikliklerini gözden geçirip kendi Git akışınızla commit edin
 `docs/features/` raporları bu kontrolden hariçtir. Önceden var olan kaynak
 kod değişiklikleri feature'a karışmasın diye bu kontrol konmuştur.
 
-Proje kökünde Claude Code'u yeniden başlatın; `/agents` içinde dört agent'ı,
+Proje kökünde Claude Code'u yeniden başlatın; `/agents` içinde beş agent'ı,
 slash menüsünde beş komutu doğrulayın. VS Code entegre terminalinde `claude`
 ile aynı akış kullanılabilir. Kurulu CLI varsa `claude --version` kontrol edin.
 Model erişimi yoksa agent dosyalarındaki `model` alanını `inherit` yapabilirsiniz.
@@ -83,6 +83,8 @@ claude-feature-mvp/
       architecture-planner.md
       feature-implementer.md
       feature-reviewer.md
+      project-reviewer.md
+      refactor-implementer.md
     commands/
       feature-plan.md
       feature-implement.md
@@ -105,6 +107,7 @@ Bu raporlar oturumlar arasında görev bağlamını taşır; gizli anahtar yazma
 | Mimar | opus | Read, Grep, Glob | Kod kanıtına dayalı plan |
 | Implementer | sonnet | Read, Grep, Glob, Edit, Write, Bash | Kod + test + handoff |
 | Reviewer | opus | Read, Grep, Glob | Bağımsız inceleme raporu |
+| Refactor implementer | sonnet | Read, Grep, Glob, Edit, Write, Bash | Seçili review bulguları için kod + test + handoff |
 
 Bu seçim bir başlangıç politikasıdır; alias'lar provider/hesap erişimine göre
 çözümlenir. Maliyet azaltmak için reviewer'ı sonnet, tüm rolleri inherit yapabilirsiniz.
@@ -170,6 +173,13 @@ Yeni dosyalar: .claude/commands/project-review.md, agents/project-reviewer.md,
 workflows/project-review.md, project-review.json, scripts/project_review_snapshot.py
 ve templates/project-review-report.md (tümü .claude altında).
 Project reviewer Opus kullanır; yalnız Read/Grep/Glob araçları vardır.
+
+Review sonrasında düzeltmek istediğiniz finding ID'lerini veya açıkça sınırlanmış
+onarım kapsamını belirterek `refactor-implementer` agent'ını kullanabilirsiniz.
+Agent bulguyu güncel kodda yeniden doğrular, kullanıcı değişikliklerini korur,
+yalnızca onaylı kapsamı uygular ve ilgili testleri çalıştırır. Belirsiz ürün
+kararlarında `NEEDS_INPUT`, plansız geniş mimari değişikliklerde `NEEDS_PLAN`
+döner; review bulgularını otomatik veya topluca uygulamaz.
 
 Raporlar `docs/reviews/<UTC-timestamp>/` altında architecture.md, code-quality.md,
 report.md, dosya envanteri ve batch raporlarıyla saklanır. İlk/son fingerprint

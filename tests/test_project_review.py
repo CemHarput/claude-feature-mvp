@@ -78,4 +78,12 @@ class ProjectReviewTests(unittest.TestCase):
         self.assertEqual(kinds['src/large.txt'],'oversized')
         self.assertEqual(kinds['src/link'],'symlink')
 
+    def test_refactor_implementer_is_installed_with_safety_contract(self):
+        agent = (self.repo/'.claude/agents/refactor-implementer.md').read_text()
+        self.assertIn('name: refactor-implementer', agent)
+        self.assertIn('explicitly supplied by', agent)
+        self.assertIn('preserve all user changes', agent)
+        self.assertIn('Do not silently broaden the scope', agent)
+        self.assertIn('NEEDS_PLAN', agent)
+
 if __name__=='__main__': unittest.main()
