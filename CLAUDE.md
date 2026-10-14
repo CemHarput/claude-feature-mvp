@@ -1,7 +1,9 @@
 # Feature delivery MVP
 
 For the feature-* commands, read `.claude/workflows/feature.md` and
-`.claude/project-context.md` first. Main Claude session is the coordinator.
+`.claude/project-context.md` first. Main Claude session coordinates saved features.
+For `/feature-fast`, the main session implements small, low-risk changes itself.
+Use the saved plan and implementer flow for complex or high-risk work.
 Run one feature at a time in this working directory. Custom agents are invoked
 explicitly by the commands; do not invoke the reviewer automatically.
 Keep user-facing responses in Turkish unless requested otherwise.

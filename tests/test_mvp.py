@@ -111,6 +111,11 @@ class MVPTests(unittest.TestCase):
         self.assertEqual(settings.read_bytes(), before)
         self.assertEqual((self.repo / 'CLAUDE.md').read_text().count('<!-- claude-feature-mvp -->'), 1)
 
+    def test_installer_includes_fast_command_and_researcher(self):
+        self.assertTrue((self.repo / '.claude/commands/feature-fast.md').is_file())
+        self.assertTrue((self.repo / '.claude/agents/feature-researcher.md').is_file())
+        self.assertIn('/feature-fast', (self.repo / 'CLAUDE.md').read_text())
+
     def test_installer_conflict_preflight_no_partial_write(self):
         command = self.repo / '.claude/commands/feature-plan.md'
         command.write_text('user command\n')

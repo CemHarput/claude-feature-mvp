@@ -1,8 +1,9 @@
 # Claude Code Feature Workflow MVP
 
-Yeni feature için ayrı mimar, implementer ve isteğe bağlı reviewer.
-Slash command dosyaları `.claude/commands/` içindedir. Ana Claude oturumu
-koordinatördür; agent'lar sırayla ve ayrı bağlamlarla çalışır.
+Küçük değişiklikler için doğrudan ana oturum; kapsamlı feature için ayrı mimar,
+implementer ve isteğe bağlı reviewer. Slash command dosyaları
+`.claude/commands/` içindedir. Kaydedilen feature akışında ana Claude oturumu
+koordinatördür; bağımsız modül araştırmaları paralel, bağımlı aşamalar sıralı çalışır.
 
 ## Gereksinimler ve kurulum
 
@@ -17,7 +18,9 @@ python3 /tam/yol/claude-feature-mvp/install.py /tam/yol/projeniz
 ```
 
 Kurucu mevcut CLAUDE.md'ye yönergeleri ekler, mevcut settings.json'u korur.
-Aynı isimli farklı agent/command dosyası varsa yazmadan hata verir.
+Aynı isimli farklı agent/command dosyası varsa yazmadan hata verir. Önceki
+sürüm kurulu bir projede değişen dosyalar için de bu koruma geçerlidir; yeni
+talimatları mevcut dosyalarla karşılaştırıp elle birleştirin.
 Mevcut project settings/user settings/managed settings geçerlidir; kurucu
 izinleri sıfırlamaz. Paketteki yeni settings.json normal `default` modundadır.
 Komutların yürütülmesi sırasında normal Claude Code tool izinleri sorulabilir.
@@ -27,19 +30,32 @@ Kurulum değişikliklerini gözden geçirip kendi Git akışınızla commit edin
 `docs/features/` raporları bu kontrolden hariçtir. Önceden var olan kaynak
 kod değişiklikleri feature'a karışmasın diye bu kontrol konmuştur.
 
-Proje kökünde Claude Code'u yeniden başlatın; `/agents` içinde beş agent'ı,
-slash menüsünde beş komutu doğrulayın. VS Code entegre terminalinde `claude`
+Proje kökünde Claude Code'u yeniden başlatın; `/agents` içinde altı agent'ı,
+slash menüsünde altı komutu doğrulayın. VS Code entegre terminalinde `claude`
 ile aynı akış kullanılabilir. Kurulu CLI varsa `claude --version` kontrol edin.
 Model erişimi yoksa agent dosyalarındaki `model` alanını `inherit` yapabilirsiniz.
 Projenizde build/test tarifleri özelse `.claude/project-context.md` içine yazın.
 
 ## Kullanım
 
+Küçük bug, metin/stil değişikliği veya mevcut mimariye uyan açık bir ekleme:
+
+```text
+/feature-fast Profil sayfasındaki yanlış başlığı düzelt.
+```
+
+Ana oturum kodu değiştirir, ilgili kontrolleri çalıştırır ve kısa sonuç verir.
+Plan, feature state veya ayrı agent çağrısı oluşturmaz. Auth/yetkilendirme,
+ödeme, veri kaybı, migrasyon riski veya tasarımı belirsiz modüller arası işler
+için aşağıdaki kaydedilen akışı kullanın. Dosya sayısı tek başına risk ölçüsü değildir.
+
 ```text
 /feature-plan user-export Kullanıcı listesini CSV olarak dışa aktarmak istiyorum. Yalnızca adminler kullanabilsin.
 ```
 
-Planner mevcut kodu okuyarak plan oluşturur; uygulama kodunu değiştirmez.
+Gerekirse birbirinden bağımsız modüller salt okunur researcher agent'larıyla
+paralel incelenir. Planner mevcut kodu ve bulguları doğrulayarak dört temel
+bölümlük plan oluşturur; uygulama kodunu değiştirmez.
 Ana oturum `docs/features/user-export/plan.md` dosyasını kaydeder ve durur.
 Planı okuyun; planlama aşamasında revizyon isteyebilirsiniz. Hazır planı
 uygulamadan önce revize ettiyseniz implement komutu güncel hash'i onaylar.
@@ -48,8 +64,12 @@ uygulamadan önce revize ettiyseniz implement komutu güncel hash'i onaylar.
 /feature-implement user-export
 ```
 
-Bu komut kaydedilmiş güncel planın onayıdır. Implementer kodu/testleri değiştirir,
-gerekli kontrolleri çalıştırır. Reviewer otomatik başlamaz.
+Bu komut kaydedilmiş güncel planın onayıdır. Koordinatör planın giriş noktalarını,
+ilgili sembolleri, kararları ve test komutlarını implementer'a aktarır. Implementer
+bunları kodda doğrular, kodu/testleri değiştirir ve gerekli kontrolleri çalıştırır.
+Mevcut mimarideki yerel isimlendirme ve yardımcı fonksiyon kararlarını kendisi
+verir; davranış, API, bağımlılık veya veri modelini değiştiren kararlarda durur.
+Reviewer otomatik başlamaz.
 
 ```text
 /feature-review user-export
@@ -81,11 +101,13 @@ claude-feature-mvp/
     project-context.md
     agents/
       architecture-planner.md
+      feature-researcher.md
       feature-implementer.md
       feature-reviewer.md
       project-reviewer.md
       refactor-implementer.md
     commands/
+      feature-fast.md
       feature-plan.md
       feature-implement.md
       feature-review.md
@@ -105,14 +127,21 @@ Bu raporlar oturumlar arasında görev bağlamını taşır; gizli anahtar yazma
 | Rol | Model alias | Araçlar | Sonuç |
 | --- | --- | --- | --- |
 | Mimar | opus | Read, Grep, Glob | Kod kanıtına dayalı plan |
+| Araştırmacı | inherit | Read, Grep, Glob | Bağımsız modül bulguları |
 | Implementer | sonnet | Read, Grep, Glob, Edit, Write, Bash | Kod + test + handoff |
 | Reviewer | opus | Read, Grep, Glob | Bağımsız inceleme raporu |
 | Refactor implementer | sonnet | Read, Grep, Glob, Edit, Write, Bash | Seçili review bulguları için kod + test + handoff |
 
 Bu seçim bir başlangıç politikasıdır; alias'lar provider/hesap erişimine göre
 çözümlenir. Maliyet azaltmak için reviewer'ı sonnet, tüm rolleri inherit yapabilirsiniz.
-Planner/reviewer shell ve yazma araçlarına sahip değildir. Raporları koordinatör
+Planner/researcher/reviewer shell ve yazma araçlarına sahip değildir. Raporları koordinatör
 kaydeder. Tool allowlist ile normal izin modu farklı mekanizmalardır.
+
+Model değişikliğinden önce birkaç benzer görevde planlama, uygulama, test ve
+raporlama sürelerini ayrı kaydedin. Yeniden okuma ve düzeltme turlarını da sayın;
+yalnız tek agent çağrısının süresine göre model değiştirmeyin. Önce kısa akışın
+toplam süreye etkisini görün, sonra model seçeneklerini aynı görev türlerinde
+karşılaştırın.
 
 ## Doğrulama
 
@@ -124,12 +153,14 @@ python3 -m unittest discover -s tests -v
 
 Testler gerçek geçici Git repository'lerinde kurulum, durum geçişleri, kirli
 kaynak engeli, hash değişikliği, eşzamanlı feature engeli ve resume'ı kontrol eder.
-Canlı Claude Code testi: küçük bir feature planlayın; kaynak dosyalarının
+Canlı Claude Code testi: `/feature-fast` ile küçük bir değişiklik yapıp ayrı
+agent/feature raporu oluşmadığını ve ilgili kontrolün çalıştığını doğrulayın.
+Ardından kapsamlı bir feature planlayın; kaynak dosyalarının
 değişmediğini kontrol edin; implement çağrısında Sonnet agent'ı ve test sonuçlarını
 doğrulayın; review çağırmadan reviewer'ın çalışmadığını doğrulayın; sonra review
 çağırıp yalnız rapor üretildiğini kontrol edin. Yeni oturumda status çalıştırın.
 
-Bu ortamda Claude Code CLI/hesabı bulunmadığı için canlı agent çağrısı doğrulanmadı.
+Canlı Claude Code agent çağrısı otomatik testlerin kapsamında değildir.
 Paketin statik biçimi ve Python/Git davranışı test edilmiştir; kendi projenizin
 build/test sonuçları kurulumdan sonra gerçek feature çalışmasında oluşur.
 
@@ -198,8 +229,9 @@ el yazımı kaynaklarınız buralardaysa config'i güncelleyin. UTF-8 olmayan, b
 clean-source kontrolüne takılabilir: yeni feature başlamadan raporları kendi Git
 akışınızla commit edin veya güvenli biçimde çalışma ağacından ayırın.
 
-Önceki MVP kuruluysa yeni ZIP'teki aynı install.py komutunu tekrar çalıştırın;
-yeni modül dosyaları eklenir. Mevcut ayarlar ve feature dosyaları korunur.
+Önceki MVP kuruluysa yeni ZIP'teki install.py değişmiş dosyalarda durur;
+yeni talimatları mevcut proje dosyalarıyla karşılaştırıp birleştirin.
+Mevcut ayarlar ve feature dosyaları korunur.
 Project reviewer agent'ının görünmesi için Claude Code'u yeniden başlatın.
 
 Canlı deneme: /project-review çalıştırın; architecture raporunun code phase'den önce
@@ -207,5 +239,5 @@ Canlı deneme: /project-review çalıştırın; architecture raporunun code phas
 işaret ettiğini ve product dosyalarının değişmediğini kontrol edin.
 
 Paket doğrulaması: 13 Python/Git testi geçti. Önceki ZIP üzerinden kurulmuş projeye
-yeni modülün eklenmesi ayrıca kontrol edildi. Canlı Claude Code agent denemesi bu
-ortamda CLI/hesap bulunmadığından yapılmadı.
+yeni modülün eklenmesi ayrıca kontrol edildi. Canlı Claude Code agent denemesi
+otomatik testlerin kapsamında değildir.
