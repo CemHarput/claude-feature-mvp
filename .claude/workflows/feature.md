@@ -22,10 +22,21 @@ test commands and decisions so it can verify and start from them.
 ## Fast path
 `/feature-fast <request>` is for clear, low-risk work that fits the existing
 architecture. The main session inspects, edits, checks, and reports directly;
-it does not create feature state or require a saved plan. Keep the saved workflow
-for uncertain cross-module design and auth, authorization, payment, data-loss,
-or migration risk. Judge risk by behavior and impact, not file count. Do not
-start an unrelated fast change while a saved feature is active or blocked.
+standalone work does not create feature state or require a saved plan. Keep the
+saved workflow for uncertain cross-module design and auth, authorization,
+payment, data-loss, or migration risk. Judge risk by behavior and impact, not
+file count. Do not start an unrelated fast change while a saved feature is
+active or blocked.
+
+After a CHANGES_REQUESTED review, `/feature-fast --feature <slug> <fix>` may
+correct bounded findings within the approved plan, even in a sensitive area.
+An unambiguous reference to the review in the current conversation also uses
+this path; ask for the slug only when it cannot be identified.
+The coordinator validates state and scope, resets the completed review flag with
+`review-fix` before editing, updates `implementation.md` with fix/check evidence,
+then asks for a fresh `/feature-review <slug>`. The previous review report is
+historical evidence until it is replaced by the next review. A PASS on that
+fresh review is the user's closure point; the helper has no closed state.
 
 ## Artifacts
 `docs/features/<slug>/request.md`: verbatim request as data.
@@ -42,7 +53,8 @@ shell. Use Read/Write for arbitrary request text. No dynamic shell injection.
 ## State and authorization
 `planning -> planned -> in_progress -> implemented|blocked`.
 Review does not change implementation status; its separate flag is
-`not_requested|completed`. A blocked implementation can resume with the same plan.
+`not_requested|completed`. `review-fix` resets that flag before a correction.
+A blocked implementation can resume with the same plan.
 
 User's `/feature-implement <slug>` approves the current saved plan. Coordinator
 records the plan hash via `start` before delegation. Helper rejects dirty source,

@@ -60,6 +60,27 @@ class MVPTests(unittest.TestCase):
         self.assertEqual(s['review'], 'completed')
         self.assertTrue(s['approval_matches'])
 
+    def test_review_fix_requires_completed_review_and_allows_fresh_review(self):
+        h = self.plan()
+        self.state('start', 'sample', '--plan-hash', h)
+        d = self.repo / 'docs/features/sample'
+        (d / 'implementation.md').write_text('AC1 met; checks pass\n')
+        self.state('finish', 'sample', '--result', 'implemented')
+        self.state('review-fix', 'sample', success=False)
+        (d / 'review.md').write_text('CHANGES_REQUESTED: F1\n')
+        self.state('reviewed', 'sample')
+        s = json.loads(self.state('review-fix', 'sample').stdout)
+        self.assertEqual(s['status'], 'implemented')
+        self.assertEqual(s['review'], 'not_requested')
+        self.assertNotIn('reviewed_at', s)
+        self.assertTrue(s['approval_matches'])
+        self.state('review-fix', 'sample', success=False)
+        (self.repo / 'app.txt').write_text('fixed finding\n')
+        (d / 'implementation.md').write_text('AC1 met; F1 fixed; checks pass\n')
+        (d / 'review.md').write_text('PASS\n')
+        s = json.loads(self.state('reviewed', 'sample').stdout)
+        self.assertEqual(s['review'], 'completed')
+
     def test_dirty_source_and_untracked_are_blocked(self):
         h = self.plan()
         (self.repo / 'new-source.py').write_text('print(1)\n')

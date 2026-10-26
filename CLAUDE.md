@@ -3,6 +3,7 @@
 For the feature-* commands, read `.claude/workflows/feature.md` and
 `.claude/project-context.md` first. Main Claude session coordinates saved features.
 For `/feature-fast`, the main session implements small, low-risk changes itself.
+It can also fix bounded review findings for an approved feature with `--feature`.
 Use the saved plan and implementer flow for complex or high-risk work.
 Run one feature at a time in this working directory. Custom agents are invoked
 explicitly by the commands; do not invoke the reviewer automatically.

@@ -19,4 +19,6 @@ Input: $ARGUMENTS
 4. Compare status/diff again. If changed, mark review stale and INCOMPLETE.
    Save returned review.md. Run `reviewed <slug>` only if snapshot is unchanged
    and reviewer returned PASS or CHANGES_REQUESTED, not INCOMPLETE.
-5. Show verdict and actionable findings. Do not apply fixes or invoke implementer.
+5. Show verdict and actionable findings. For bounded findings within the approved
+   plan, suggest `/feature-fast --feature <slug> <finding IDs or fix>` followed by
+   a fresh `/feature-review <slug>`. Do not apply fixes or invoke implementer.

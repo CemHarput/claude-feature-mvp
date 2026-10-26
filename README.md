@@ -77,9 +77,17 @@ Reviewer otomatik başlamaz.
 ```
 
 Review sadece rapor üretir. Findings varsa otomatik düzeltme yapılmaz; raporu
-izleyerek ayrıca düzeltme isteyin. Aynı plan içindeki küçük düzeltmeleri normal
-Claude isteğiyle yapıp tekrar review çalıştırabilirsiniz; implementation.md'deki
-kanıt/check sonuçlarını da güncelletin. Mimari/kapsam değişirse yeni slug ile
+izleyerek ayrıca düzeltme isteyin. `CHANGES_REQUESTED` içindeki, onaylı plan
+kapsamında kalan somut bulguları şu sırayla düzeltebilirsiniz:
+
+```text
+/feature-fast --feature user-export F1 ve F2 bulgularını düzelt
+/feature-review user-export
+```
+
+Bu kullanım eski review'u geçersiz kılar ve `implementation.md` içine düzeltme
+ile kontrol kanıtını ekler. Yeni review `PASS` derse feature'ı kapatabilirsiniz;
+helper'da ayrı bir `closed` durumu yoktur. Mimari/kapsam değişirse yeni slug ile
 planlayın. Rapor zamanına ait verdict, sonraki değişiklikleri kapsamaz.
 
 Yarım kalan in_progress/blocked feature için aynı implement komutu devam eder.

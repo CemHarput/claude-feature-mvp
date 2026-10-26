@@ -123,6 +123,15 @@ def run(a):
             s['review'] = 'completed'
             s['reviewed_at'] = now()
             save(d, s)
+        elif a.action == 'review-fix':
+            if s['status'] != 'implemented' or s['review'] != 'completed':
+                fail('Review fix requires an implemented feature with a completed review.')
+            check(d, s)
+            if not (d / 'review.md').is_file() or not (d / 'implementation.md').is_file():
+                fail('Review and implementation reports are required.')
+            s['review'] = 'not_requested'
+            s.pop('reviewed_at', None)
+            save(d, s)
     result = dict(s)
     result['feature_directory'] = str(d)
     result['plan_sha256'] = digest(d) if (d / 'plan.md').is_file() else None
@@ -133,7 +142,7 @@ def run(a):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest='action', required=True)
-    for name in ('init', 'planned', 'start', 'check', 'finish', 'reviewed', 'status'):
+    for name in ('init', 'planned', 'start', 'check', 'finish', 'reviewed', 'review-fix', 'status'):
         q = sub.add_parser(name)
         q.add_argument('slug')
         if name == 'start':
