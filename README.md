@@ -1,103 +1,115 @@
 # Claude Code Feature Workflow MVP
 
-Küçük değişiklikler için doğrudan ana oturum; kapsamlı feature için ayrı mimar,
-implementer ve isteğe bağlı reviewer. Slash command dosyaları
-`.claude/commands/` içindedir. Kaydedilen feature akışında ana Claude oturumu
-koordinatördür; bağımsız modül araştırmaları paralel, bağımlı aşamalar sıralı çalışır.
+For small changes, the main session works directly; for larger features, a
+separate architect, implementer and an optional reviewer are used. The slash
+command files live in `.claude/commands/`. In the saved-feature flow the main
+Claude session is the coordinator; independent module research runs in
+parallel, dependent stages run sequentially.
 
-## Gereksinimler ve kurulum
+## Requirements and setup
 
-- Güncel Claude Code, hesabınıza açık Opus/Sonnet modelleri.
-- Python 3.9+ (`python3`) ve Git. Windows: WSL önerilir.
-- Uygulamanızın mevcut Git repository'si; paket uygulama iskeleti içermez.
+- A current Claude Code, with Opus/Sonnet models available on your account.
+- Python 3.9+ (`python3`) and Git. On Windows, WSL is recommended.
+- An existing Git repository for your application; the package does not
+  include an application skeleton.
 
-ZIP'i açın. İçinden çıkan `claude-feature-mvp` dizinindeki kurucuyu çalıştırın:
+Unzip the archive. Run the installer from the extracted `claude-feature-mvp`
+directory:
 
 ```bash
-python3 /tam/yol/claude-feature-mvp/install.py /tam/yol/projeniz
+python3 /full/path/claude-feature-mvp/install.py /full/path/your-project
 ```
 
-Kurucu mevcut CLAUDE.md'ye yönergeleri ekler, mevcut settings.json'u korur.
-Aynı isimli farklı agent/command dosyası varsa yazmadan hata verir. Önceki
-sürüm kurulu bir projede değişen dosyalar için de bu koruma geçerlidir; yeni
-talimatları mevcut dosyalarla karşılaştırıp elle birleştirin.
-Mevcut project settings/user settings/managed settings geçerlidir; kurucu
-izinleri sıfırlamaz. Paketteki yeni settings.json normal `default` modundadır.
-Komutların yürütülmesi sırasında normal Claude Code tool izinleri sorulabilir.
+The installer appends the instructions to an existing CLAUDE.md and keeps an
+existing settings.json. If an agent/command file with the same name but
+different content exists, it fails without writing. The same protection applies
+to changed files in a project that has an earlier version installed; compare
+the new instructions with the existing files and merge them by hand.
+Existing project settings / user settings / managed settings remain in effect;
+the installer does not reset permissions. The new settings.json in the package
+uses the normal `default` mode. Normal Claude Code tool permissions may be
+requested while commands run.
 
-Kurulum değişikliklerini gözden geçirip kendi Git akışınızla commit edin.
-İlk implementation öncesinde uygulama/config çalışma ağacı temiz olmalıdır;
-`docs/features/` raporları bu kontrolden hariçtir. Önceden var olan kaynak
-kod değişiklikleri feature'a karışmasın diye bu kontrol konmuştur.
+Review the installation changes and commit them with your own Git workflow.
+Before the first implementation, the application/config working tree must be
+clean; reports under `docs/features/` are excluded from this check. The check
+exists so that pre-existing source changes do not get mixed into the feature.
 
-Proje kökünde Claude Code'u yeniden başlatın; `/agents` içinde altı agent'ı,
-slash menüsünde altı komutu doğrulayın. VS Code entegre terminalinde `claude`
-ile aynı akış kullanılabilir. Kurulu CLI varsa `claude --version` kontrol edin.
-Model erişimi yoksa agent dosyalarındaki `model` alanını `inherit` yapabilirsiniz.
-Projenizde build/test tarifleri özelse `.claude/project-context.md` içine yazın.
+Restart Claude Code in the project root; verify the six agents in `/agents`
+and the six commands in the slash menu. The same flow can be used with
+`claude` in the VS Code integrated terminal. If the CLI is installed, check
+`claude --version`. If you lack model access, you can set the `model` field
+in the agent files to `inherit`. If your project has special build/test
+recipes, write them in `.claude/project-context.md`.
 
-## Kullanım
+## Usage
 
-Küçük bug, metin/stil değişikliği veya mevcut mimariye uyan açık bir ekleme:
+For a small bug, a text/style change, or a clear addition that fits the
+existing architecture:
 
 ```text
-/feature-fast Profil sayfasındaki yanlış başlığı düzelt.
+/feature-fast Fix the wrong heading on the profile page.
 ```
 
-Ana oturum kodu değiştirir, ilgili kontrolleri çalıştırır ve kısa sonuç verir.
-Plan, feature state veya ayrı agent çağrısı oluşturmaz. Auth/yetkilendirme,
-ödeme, veri kaybı, migrasyon riski veya tasarımı belirsiz modüller arası işler
-için aşağıdaki kaydedilen akışı kullanın. Dosya sayısı tek başına risk ölçüsü değildir.
+The main session changes the code, runs the relevant checks and gives a short
+result. It does not create a plan, feature state or a separate agent call. For
+auth/authorization, payments, data loss, migration risk, or cross-module work
+with unclear design, use the saved flow below. The number of files alone is
+not a measure of risk.
 
 ```text
-/feature-plan user-export Kullanıcı listesini CSV olarak dışa aktarmak istiyorum. Yalnızca adminler kullanabilsin.
+/feature-plan user-export I want to export the user list as CSV. Only admins should be able to use it.
 ```
 
-Gerekirse birbirinden bağımsız modüller salt okunur researcher agent'larıyla
-paralel incelenir. Planner mevcut kodu ve bulguları doğrulayarak dört temel
-bölümlük plan oluşturur; uygulama kodunu değiştirmez.
-Ana oturum `docs/features/user-export/plan.md` dosyasını kaydeder ve durur.
-Planı okuyun; planlama aşamasında revizyon isteyebilirsiniz. Hazır planı
-uygulamadan önce revize ettiyseniz implement komutu güncel hash'i onaylar.
+When needed, independent modules are examined in parallel by read-only
+researcher agents. The planner verifies the existing code and the findings and
+produces a plan with four core sections; it does not change application code.
+The main session saves `docs/features/user-export/plan.md` and stops. Read the
+plan; you can ask for revisions during planning. If you revised a ready plan
+before implementing it, the implement command approves the current hash.
 
 ```text
 /feature-implement user-export
 ```
 
-Bu komut kaydedilmiş güncel planın onayıdır. Koordinatör planın giriş noktalarını,
-ilgili sembolleri, kararları ve test komutlarını implementer'a aktarır. Implementer
-bunları kodda doğrular, kodu/testleri değiştirir ve gerekli kontrolleri çalıştırır.
-Mevcut mimarideki yerel isimlendirme ve yardımcı fonksiyon kararlarını kendisi
-verir; davranış, API, bağımlılık veya veri modelini değiştiren kararlarda durur.
-Reviewer otomatik başlamaz.
+This command is your approval of the saved, current plan. The coordinator
+passes the plan's entry points, relevant symbols, decisions and test commands
+to the implementer. The implementer verifies them in the code, changes the
+code/tests and runs the necessary checks. It makes local naming and helper
+function decisions within the existing architecture itself; it stops on
+decisions that change behavior, the API, dependencies or the data model.
+The reviewer does not start automatically.
 
 ```text
 /feature-review user-export
 /feature-status user-export
 ```
 
-Review sadece rapor üretir. Findings varsa otomatik düzeltme yapılmaz; raporu
-izleyerek ayrıca düzeltme isteyin. `CHANGES_REQUESTED` içindeki, onaylı plan
-kapsamında kalan somut bulguları şu sırayla düzeltebilirsiniz:
+Review only produces a report. If there are findings, no automatic fix is
+made; follow the report and request fixes separately. Concrete findings under
+`CHANGES_REQUESTED` that stay within the approved plan's scope can be fixed in
+this order:
 
 ```text
-/feature-fast --feature user-export F1 ve F2 bulgularını düzelt
+/feature-fast --feature user-export Fix findings F1 and F2
 /feature-review user-export
 ```
 
-Bu kullanım eski review'u geçersiz kılar ve `implementation.md` içine düzeltme
-ile kontrol kanıtını ekler. Yeni review `PASS` derse feature'ı kapatabilirsiniz;
-helper'da ayrı bir `closed` durumu yoktur. Mimari/kapsam değişirse yeni slug ile
-planlayın. Rapor zamanına ait verdict, sonraki değişiklikleri kapsamaz.
+This usage invalidates the old review and appends the fix and the check
+evidence to `implementation.md`. If the new review says `PASS`, you can close
+the feature; the helper has no separate `closed` state. If the architecture or
+scope changes, plan with a new slug. A verdict is valid as of the report time;
+it does not cover later changes.
 
-Yarım kalan in_progress/blocked feature için aynı implement komutu devam eder.
-Başka feature'a geçmeden aktif/blocked işi tamamlayın; tamamen bırakılacak bir
-feature'ın kaynak değişiklikleri ve state'i manuel olarak, gözden geçirilerek
-arşivlenmelidir. MVP otomatik rollback/abandon komutu içermez.
-Bir feature için aynı çalışma dizininde eşzamanlı Claude oturumu kullanmayın.
-Bağımsız işler için ayrı Git worktree kullanın.
+For a half-finished in_progress/blocked feature, the same implement command
+resumes it. Finish the active/blocked work before moving to another feature; a
+feature that is to be abandoned entirely must have its source changes and
+state archived manually, after review. The MVP has no automatic
+rollback/abandon command. Do not use concurrent Claude sessions for one
+feature in the same working directory. Use separate Git worktrees for
+independent work.
 
-## Dosya yapısı
+## File structure
 
 ```text
 claude-feature-mvp/
@@ -126,76 +138,79 @@ claude-feature-mvp/
   tests/test_project_review.py
 ```
 
-Çalışınca proje içinde `docs/features/<slug>/` altında request.md, plan.md,
-state.json, implementation.md ve isteğe bağlı review.md oluşur.
-Bu raporlar oturumlar arasında görev bağlamını taşır; gizli anahtar yazmayın.
+When run, request.md, plan.md, state.json, implementation.md and an optional
+review.md are created in the project under `docs/features/<slug>/`. These
+reports carry task context across sessions; do not write secrets in them.
 
-## Model ve yetki seçimi
+## Model and permission choices
 
-| Rol | Model alias | Araçlar | Sonuç |
+| Role | Model alias | Tools | Output |
 | --- | --- | --- | --- |
-| Mimar | opus | Read, Grep, Glob | Kod kanıtına dayalı plan |
-| Araştırmacı | inherit | Read, Grep, Glob | Bağımsız modül bulguları |
-| Implementer | sonnet | Read, Grep, Glob, Edit, Write, Bash | Kod + test + handoff |
-| Reviewer | opus | Read, Grep, Glob | Bağımsız inceleme raporu |
-| Refactor implementer | sonnet | Read, Grep, Glob, Edit, Write, Bash | Seçili review bulguları için kod + test + handoff |
+| Architect | opus | Read, Grep, Glob | Plan based on code evidence |
+| Researcher | inherit | Read, Grep, Glob | Independent module findings |
+| Implementer | sonnet | Read, Grep, Glob, Edit, Write, Bash | Code + tests + handoff |
+| Reviewer | opus | Read, Grep, Glob | Independent review report |
+| Refactor implementer | sonnet | Read, Grep, Glob, Edit, Write, Bash | Code + tests + handoff for selected review findings |
 
-Bu seçim bir başlangıç politikasıdır; alias'lar provider/hesap erişimine göre
-çözümlenir. Maliyet azaltmak için reviewer'ı sonnet, tüm rolleri inherit yapabilirsiniz.
-Planner/researcher/reviewer shell ve yazma araçlarına sahip değildir. Raporları koordinatör
-kaydeder. Tool allowlist ile normal izin modu farklı mekanizmalardır.
+This selection is a starting policy; aliases are resolved according to
+provider/account access. To reduce cost, you can set the reviewer to sonnet or
+all roles to inherit. The planner/researcher/reviewer have no shell or write
+tools. The coordinator saves the reports. The tool allowlist and the normal
+permission mode are different mechanisms.
 
-Model değişikliğinden önce birkaç benzer görevde planlama, uygulama, test ve
-raporlama sürelerini ayrı kaydedin. Yeniden okuma ve düzeltme turlarını da sayın;
-yalnız tek agent çağrısının süresine göre model değiştirmeyin. Önce kısa akışın
-toplam süreye etkisini görün, sonra model seçeneklerini aynı görev türlerinde
-karşılaştırın.
+Before changing models, record planning, implementation, testing and reporting
+times separately across several similar tasks. Count re-reading and fix rounds
+too; do not switch models based only on the duration of a single agent call.
+First see the effect of the short flow on total time, then compare model
+options on the same task types.
 
-## Doğrulama
+## Verification
 
-Paket dizininde:
+In the package directory:
 
 ```bash
 python3 -m unittest discover -s tests -v
 ```
 
-Testler gerçek geçici Git repository'lerinde kurulum, durum geçişleri, kirli
-kaynak engeli, hash değişikliği, eşzamanlı feature engeli ve resume'ı kontrol eder.
-Canlı Claude Code testi: `/feature-fast` ile küçük bir değişiklik yapıp ayrı
-agent/feature raporu oluşmadığını ve ilgili kontrolün çalıştığını doğrulayın.
-Ardından kapsamlı bir feature planlayın; kaynak dosyalarının
-değişmediğini kontrol edin; implement çağrısında Sonnet agent'ı ve test sonuçlarını
-doğrulayın; review çağırmadan reviewer'ın çalışmadığını doğrulayın; sonra review
-çağırıp yalnız rapor üretildiğini kontrol edin. Yeni oturumda status çalıştırın.
+The tests check setup, state transitions, the dirty-source block, hash
+changes, the concurrent-feature block and resume in real temporary Git
+repositories. Live Claude Code test: make a small change with `/feature-fast`
+and verify that no separate agent/feature report is created and that the
+relevant check runs. Then plan a larger feature; check that the source files
+are unchanged; on the implement call, verify the Sonnet agent and the test
+results; verify that the reviewer does not run until you call review; then
+call review and check that only a report is produced. Run status in a new
+session.
 
-Canlı Claude Code agent çağrısı otomatik testlerin kapsamında değildir.
-Paketin statik biçimi ve Python/Git davranışı test edilmiştir; kendi projenizin
-build/test sonuçları kurulumdan sonra gerçek feature çalışmasında oluşur.
+Live Claude Code agent calls are outside the scope of the automated tests.
+The package's static form and Python/Git behavior are tested; your own
+project's build/test results arise in real feature work after installation.
 
-## MVP sınırları
+## MVP limits
 
-Prompt tabanlı koordinasyon ve Python state guard kullanılır. Helper onaylanan
-planın hash'ini kontrol eder; arbitrary kod editlerini yakalayan hook yoktur.
-Dolayısıyla bu, ana Claude oturumunun tüm yazmalarını kilitleyen bir güvenlik
-sınırı değildir. Test başarıları helper tarafından yorumlanmaz; koordinatör
-rapordaki kanıta göre implemented/blocked seçer. Rapor dosyaları elle değiştirilebilir.
-Review mevcut HEAD'e göre tüm uygulama diff'ini ve untracked dosyaları kapsar;
-implementation sırasında commit/branch değişimi yapılmamalıdır. Sonrasında review
-istiyorsanız açık baseline ile manuel inceleme gerekir. Ignore edilen kaynak
-dosyalar Git diff'ine girmez; projede bu tür dosyaları açıkça scope'a ekleyin.
+It uses prompt-based coordination and a Python state guard. The helper checks
+the hash of the approved plan; there is no hook that catches arbitrary code
+edits. Therefore this is not a security boundary that locks all writes of the
+main Claude session. Test successes are not interpreted by the helper; the
+coordinator chooses implemented/blocked based on the evidence in the report.
+Report files can be edited by hand. Review covers the whole implementation
+diff and untracked files relative to the current HEAD; commits/branch changes
+must not be made during implementation. If you want a review afterwards, a
+manual review against an explicit baseline is needed. Ignored source files do
+not enter the Git diff; explicitly add such files to the scope in your project.
 
-## Resmi kaynaklar
+## Official sources
 
-11 Ekim 2026 tarihinde kontrol edilen dokümanlar:
+Documents checked on 11 October 2026:
 - https://code.claude.com/docs/en/slash-commands
 - https://code.claude.com/docs/en/sub-agents
 - https://code.claude.com/docs/en/settings
 
-Commands ve skills aynı slash arayüzünü üretir; mevcut `.claude/commands/`
-biçimi desteklenir. Daha sonra supporting files gerektiğinde skills biçimine
-geçilebilir; bu MVP için gerekli değildir.
+Commands and skills produce the same slash interface; the existing
+`.claude/commands/` format is supported. If supporting files are needed later,
+you can move to the skills format; this is not necessary for this MVP.
 
-## Yeni: proje mimarisi ve kod kalitesi incelemesi
+## New: project architecture and code quality review
 
 ```text
 /project-review
@@ -203,49 +218,55 @@ geçilebilir; bu MVP için gerekli değildir.
 /project-review src/auth/login.ts
 ```
 
-Parametre gerçek repo-relative dosya/dizin yoludur. Önce mimari çıkarılır, sonra
-kod dosyaları sırayla incelenir. Clean code, sorumluluk ayrımı, coupling, duplication,
-hata yönetimi ve mimari antipattern bulguları kanıt ve önem sırasıyla raporlanır.
-Yalnız rapor yazılır; uygulama kodunda düzeltme yapılmaz.
+The parameter is a real repo-relative file/directory path. The architecture is
+extracted first, then the code files are reviewed in order. Findings on clean
+code, separation of responsibilities, coupling, duplication, error handling
+and architectural antipatterns are reported with evidence and in order of
+severity. Only a report is written; no fixes are made in application code.
 
-Yeni dosyalar: .claude/commands/project-review.md, agents/project-reviewer.md,
-workflows/project-review.md, project-review.json, scripts/project_review_snapshot.py
-ve templates/project-review-report.md (tümü .claude altında).
-Project reviewer Opus kullanır; yalnız Read/Grep/Glob araçları vardır.
+New files: .claude/commands/project-review.md, agents/project-reviewer.md,
+workflows/project-review.md, project-review.json,
+scripts/project_review_snapshot.py and templates/project-review-report.md
+(all under .claude). The project reviewer uses Opus; it only has the
+Read/Grep/Glob tools.
 
-Review sonrasında düzeltmek istediğiniz finding ID'lerini veya açıkça sınırlanmış
-onarım kapsamını belirterek `refactor-implementer` agent'ını kullanabilirsiniz.
-Agent bulguyu güncel kodda yeniden doğrular, kullanıcı değişikliklerini korur,
-yalnızca onaylı kapsamı uygular ve ilgili testleri çalıştırır. Belirsiz ürün
-kararlarında `NEEDS_INPUT`, plansız geniş mimari değişikliklerde `NEEDS_PLAN`
-döner; review bulgularını otomatik veya topluca uygulamaz.
+After the review, you can use the `refactor-implementer` agent by naming the
+finding IDs you want fixed or an explicitly bounded repair scope. The agent
+re-verifies the finding in the current code, preserves user changes, applies
+only the approved scope and runs the relevant tests. It returns `NEEDS_INPUT`
+for unclear product decisions and `NEEDS_PLAN` for broad architectural changes
+without a plan; it does not apply review findings automatically or in bulk.
 
-Raporlar `docs/reviews/<UTC-timestamp>/` altında architecture.md, code-quality.md,
-report.md, dosya envanteri ve batch raporlarıyla saklanır. İlk/son fingerprint
-farklıysa STALE; eksik inceleme varsa INCOMPLETE bildirilir. Büyük projeler sırayla
-batch'lere bölünür; okunmayan dosyalar açıkça kapsam tablosunda görünür.
+Reports are stored under `docs/reviews/<UTC-timestamp>/` as architecture.md,
+code-quality.md, report.md, the file inventory and batch reports. If the first
+and last fingerprints differ, it reports STALE; if the review is missing parts,
+it reports INCOMPLETE. Large projects are split into batches in sequence;
+unread files are explicitly shown in the coverage table.
 
-Bu SonarQube entegrasyonu değildir. Mevcut yerel lint/static analyzer'lar varsa,
-komutları okuyarak kurulum/düzeltme yapmayan check modunda kullanılır. Yoksa açıkça
-bildirilir. Complexity/coverage/duplication yüzdesi, debt süresi ve quality gate
-ölçüm olmadan üretilmez. Kurallar gerçek proje yapısına göre gerekçelendirilir;
-kişisel stil tercihleri bug sayılmaz. Bulgular severity ve confidence ile raporlanır.
+This is not a SonarQube integration. If local lint/static analyzers exist,
+they are used in check mode, without installing or fixing anything, by reading
+their commands. If none exist, this is stated explicitly. Complexity /
+coverage / duplication percentages, debt time and quality gates are not
+produced without measurement. Rules are justified against the real project
+structure; personal style preferences are not counted as bugs. Findings are
+reported with severity and confidence.
 
-Git-ignore dosyaları kapsam dışıdır. node_modules/vendor/build varsayılan hariçtir;
-el yazımı kaynaklarınız buralardaysa config'i güncelleyin. UTF-8 olmayan, binary,
-çok büyük ve symlink dosyalar ayrıca kaydedilir. Review raporları feature başlangıcı
-clean-source kontrolüne takılabilir: yeni feature başlamadan raporları kendi Git
-akışınızla commit edin veya güvenli biçimde çalışma ağacından ayırın.
+Git-ignored files are out of scope. node_modules/vendor/build are excluded by
+default; if your hand-written sources live there, update the config.
+Non-UTF-8, binary, very large and symlink files are recorded separately.
+Review reports may trip the clean-source check at the start of a feature:
+before starting a new feature, commit the reports with your own Git workflow or
+safely move them out of the working tree.
 
-Önceki MVP kuruluysa yeni ZIP'teki install.py değişmiş dosyalarda durur;
-yeni talimatları mevcut proje dosyalarıyla karşılaştırıp birleştirin.
-Mevcut ayarlar ve feature dosyaları korunur.
-Project reviewer agent'ının görünmesi için Claude Code'u yeniden başlatın.
+If an earlier MVP is installed, install.py from the new ZIP stops on changed
+files; compare the new instructions with the existing project files and merge
+them. Existing settings and feature files are preserved. Restart Claude Code so
+that the project reviewer agent appears.
 
-Canlı deneme: /project-review çalıştırın; architecture raporunun code phase'den önce
-üretildiğini, coverage ile inventory'nin uyuştuğunu, bulguların gerçek satırlara
-işaret ettiğini ve product dosyalarının değişmediğini kontrol edin.
+Live trial: run /project-review; check that the architecture report is produced
+before the code phase, that coverage matches the inventory, that findings point
+to real lines, and that product files are unchanged.
 
-Paket doğrulaması: 13 Python/Git testi geçti. Önceki ZIP üzerinden kurulmuş projeye
-yeni modülün eklenmesi ayrıca kontrol edildi. Canlı Claude Code agent denemesi
-otomatik testlerin kapsamında değildir.
+Package verification: 13 Python/Git tests passed. Adding the new module to a
+project installed from the previous ZIP was also checked. A live Claude Code
+agent trial is outside the scope of the automated tests.
